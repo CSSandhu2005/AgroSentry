@@ -6,7 +6,8 @@ import { IconMenu2, IconX } from "@tabler/icons-react";
 
 interface Links {
   label: string;
-  href: string;
+  href?: string;   // optional now
+  onClick?: () => void; // optional click handler
   icon: React.JSX.Element | React.ReactNode;
 }
 
@@ -157,20 +158,19 @@ export const MobileSidebar = ({
 export const SidebarLink = ({
   link,
   className,
-  ...props
 }: {
   link: Links;
   className?: string;
 }) => {
   const { open, animate } = useSidebar();
+
   return (
-    <a
-      href={link.href}
+    <div
+      onClick={link.onClick}
       className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2",
+        "flex items-center justify-start gap-2 group/sidebar py-2 cursor-pointer",
         className
       )}
-      {...props}
     >
       {link.icon}
 
@@ -183,6 +183,7 @@ export const SidebarLink = ({
       >
         {link.label}
       </motion.span>
-    </a>
+    </div>
   );
 };
+

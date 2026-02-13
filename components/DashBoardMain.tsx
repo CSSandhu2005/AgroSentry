@@ -1,5 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Sidebar, SidebarBody, SidebarLink } from "./sidebar";
 import {
   IconArrowLeft,
@@ -16,14 +24,21 @@ export function DashBoardMain() {
   const links = [
     {
       label: "Dashboard",
-      href: "#",
+      onClick: () => setActiveView("overview"),
       icon: (
         <IconBrandTabler className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {
+      label: "Community Insights",
+      onClick: () => setActiveView("community"),
+      icon: (
+        <IconSettings className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    },
+    {
       label: "Profile",
-      href: "#",
+      onClick: () => setActiveView("profile"),
       icon: (
         <IconUserBolt className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
@@ -44,6 +59,8 @@ export function DashBoardMain() {
     },
   ];
   const [open, setOpen] = useState(false);
+  const [activeView, setActiveView] = useState("community");
+
   return (
     <div
       className={cn(
@@ -59,24 +76,30 @@ export function DashBoardMain() {
             </>
             <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => (
-                <SidebarLink key={idx} link={link} />
+                <div
+                  key={idx}
+                  onClick={link.onClick}
+                  className="cursor-pointer"
+                >
+                  <SidebarLink link={link} />
+                </div>
               ))}
             </div>
           </div>
           <div>
-              <SidebarLink
+            <SidebarLink
               link={{
                 // Display the user's name (or "User" while loading)
                 label: isLoaded ? user?.fullName || "User" : "Loading...",
                 href: "#",
                 icon: (
                   // Clerk's UserButton handles the Image, Menu, Logout, and Settings automatically
-                  <UserButton 
-                    afterSignOutUrl="/" 
+                  <UserButton
+                    afterSignOutUrl="/"
                     appearance={{
                       elements: {
-                        avatarBox: "h-7 w-7" // Ensures the avatar size matches your design
-                      }
+                        avatarBox: "h-7 w-7", // Ensures the avatar size matches your design
+                      },
                     }}
                   />
                 ),
@@ -86,7 +109,7 @@ export function DashBoardMain() {
           </div>
         </SidebarBody>
       </Sidebar>
-      <Dashboard />
+      <Dashboard activeView={activeView} />
     </div>
   );
 }
@@ -119,26 +142,116 @@ export const LogoIcon = () => {
 };
 
 // Dummy dashboard component with content
-const Dashboard = () => {
+const Dashboard = ({ activeView }: { activeView: string }) => {
+  const [data, setData] = useState<any[]>([]);
+  const [summary, setSummary] = useState("");
+  const [regionScore, setRegionScore] = useState(0);
+  const hasCritical = data.some((item) => item.risk === "High");
+
+  useEffect(() => {
+    fetch("/api/community")
+      .then((res) => res.json())
+      .then((res) => {
+        setData(res.analysis);
+        setSummary(res.aiSummary);
+        setRegionScore(res.regionScore);
+      });
+  }, []);
+
   return (
     <div className="flex flex-1">
-      <div className="flex h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-neutral-200 bg-white p-2 md:p-10 dark:border-neutral-700 dark:bg-neutral-900">
-        <div className="flex gap-2">
-          {[...new Array(4)].map((i, idx) => (
-            <div
-              key={"first-array-demo-2" + idx}
-              className="h-20 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-neutral-800"
-            ></div>
-          ))}
-        </div>
-        <div className="flex flex-1 gap-2">
-          {[...new Array(2)].map((i, idx) => (
-            <div
-              key={"second-array-demo-2" + idx}
-              className="h-full w-full animate-pulse rounded-lg bg-gray-100 dark:bg-neutral-800"
-            ></div>
-          ))}
-        </div>
+      <div
+        className="flex h-full w-full flex-1 flex-col gap-6 
+        rounded-tl-2xl border 
+      border-neutral-200 
+      bg-white p-6 md:p-10 
+      dark:border-neutral-700 
+      dark:bg-neutral-900
+        overflow-y-auto"
+      >
+        {/* Title */}
+        {activeView === "overview" && (
+          <div>
+            <h1 className="text-2xl font-bold">Overview</h1>
+            <p>General system stats here</p>
+          </div>
+        )}
+
+        {activeView === "community" && (
+          <>
+            {hasCritical && (
+              <div className="bg-red-600 text-white p-4 rounded-xl mb-4 animate-pulse">
+                🚨 Autonomous AI Alert: Immediate Intervention Recommended
+              </div>
+            )}
+
+            <div className="bg-black text-white p-4 rounded-xl">
+              🌾 Regional Crop Health Index: {regionScore}/10
+            </div>
+
+            <div className="bg-white dark:bg-neutral-800 border border-green-200 dark:border-green-700 p-6 rounded-xl shadow-sm mb-6">
+              <h3 className="font-semibold text-green-600 dark:text-green-400 mb-2">
+                🧠 AI Regional Insight
+              </h3>
+              <div className="max-h-64 overflow-y-auto">
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                  {summary}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-6">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data}>
+                  <XAxis dataKey="pest" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar
+                    dataKey="thisWeek"
+                    fill="#16a34a"
+                    radius={[6, 6, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {data.map((item) => (
+                <div
+                  key={item.pest}
+                  className="flex justify-between bg-gray-100 dark:bg-neutral-800 p-4 rounded-lg"
+                >
+                  <div>
+                    <p className="font-semibold">{item.pest}</p>
+                    <p className="text-sm text-gray-500">
+                      Growth: {item.growth}%
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p>
+                      {item.risk === "High"
+                        ? "🔴 Current Risk"
+                        : item.risk === "Medium"
+                          ? "🟠 Watch"
+                          : "🟢 Stable"}
+                    </p>
+
+                    <p className="text-xs mt-1">
+                      Predicted Next Week: {item.predictedRisk}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeView === "profile" && (
+          <div>
+            <h1 className="text-2xl font-bold">Profile</h1>
+          </div>
+        )}
       </div>
     </div>
   );
