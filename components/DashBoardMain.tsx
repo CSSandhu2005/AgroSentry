@@ -14,10 +14,12 @@ import {
   IconBrandTabler,
   IconSettings,
   IconUserBolt,
+  IconDrone,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { FlightControlDashboard } from "./FlightControlDashboard";
 
 export function DashBoardMain() {
   const { user, isLoaded } = useUser();
@@ -41,6 +43,13 @@ export function DashBoardMain() {
       onClick: () => setActiveView("profile"),
       icon: (
         <IconUserBolt className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    },
+    {
+      label: "Flight Control",
+      onClick: () => setActiveView("flight-control"),
+      icon: (
+        <IconDrone className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {
@@ -252,7 +261,14 @@ const Dashboard = ({ activeView }: { activeView: string }) => {
             <h1 className="text-2xl font-bold">Profile</h1>
           </div>
         )}
+
+        {activeView === "flight-control" && (
+          <div className="-m-6 md:-m-10 flex-1">
+            <FlightControlDashboard />
+          </div>
+        )}
       </div>
     </div>
   );
 };
+

@@ -3,7 +3,7 @@ import "../globals.css";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}> 
+    <html lang="en" className="dark" style={{ colorScheme: 'dark' }} suppressHydrationWarning> 
       <body className="bg-background text-foreground">
         {children}
       </body>
